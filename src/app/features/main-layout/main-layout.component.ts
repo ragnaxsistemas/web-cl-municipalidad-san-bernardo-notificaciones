@@ -14,7 +14,7 @@ import { RouterModule, Router } from '@angular/router';
           
           <nav class="nav-menu">
             @if (perfilUsuario === 'operador') {
-              <a routerLink="/operador" routerLinkActive="active-link" class="nav-link">📤 Subir Archivo</a>
+              <a routerLink="/operador" routerLinkActive="active-link" class="nav-link">📤 </a>
             }
 
             @if (perfilUsuario === 'ejecutivo' || perfilUsuario === 'administrador') {

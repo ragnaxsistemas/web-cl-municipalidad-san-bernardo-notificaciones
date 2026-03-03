@@ -1,92 +1,97 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms'; // Necesario para el selector de cantidad
-import { DataService } from '../../services/data.service';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router'; // Importante para el logout
+import { DataService } from '../../services/data.service'; // Ajusta la ruta si es necesario
 
 @Component({
   selector: 'app-ejecutivo-dashboard',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './ejecutivo-dashboard.component.html'
+  templateUrl: './ejecutivo-dashboard.component.html',
+  styleUrls: ['./ejecutivo-dashboard.component.css']
 })
-export class EjecutivoDashboardComponent {
-  tipoActual = '';
-  carpetaSeleccionada = '';
-  
+export class EjecutivoDashboardComponent implements OnInit {
+  // Variables de datos
   carpetas: string[] = [];
-  carpetasFiltradas: string[] = [];
-  
   archivos: string[] = [];
-  archivosFiltrados: string[] = [];
+  tipoActual: string = '';
+  carpetaSeleccionada: string = '';
   
-  // Configuración de visualización
-  paginaActual = 0;
-  pageSize = 100; // Valor por defecto
-  terminoBusqueda = '';
+  // Variables de filtrado y paginación
+  filtro: string = '';
+  paginaActual: number = 0;
+  pageSize: number = 10;
 
-  constructor(private dataService: DataService) {}
+  constructor(
+    private dataService: DataService,
+    private router: Router // Inyectamos el router aquí
+  ) {}
 
+  ngOnInit(): void {}
+
+  // --- FUNCIÓN QUE FALTABA ---
+  logout() {
+    localStorage.clear(); // Limpia datos de sesión
+    this.router.navigate(['/login']); // Redirige al login
+  }
+
+  // --- LÓGICA DE CARPETAS ---
   onTipoChange(event: any) {
-    const tipo = event.target.value;
-    if (!tipo) return;
-    
-    this.tipoActual = tipo;
-    this.carpetaSeleccionada = '';
-    this.paginaActual = 0;
-    this.dataService.listar(tipo).subscribe({
-  next: (res: any) => {
-    // Extraemos el array 'carpetas' del objeto JSON que recibimos
-    this.carpetas = res.carpetas || []; 
-    this.carpetasFiltradas = [...this.carpetas];
-    this.paginaActual = 0;
-  },
-  error: (err) => {
-    console.error('Error:', err);
-    this.carpetas = [];
-    this.carpetasFiltradas = [];
+  this.tipoActual = event.target.value;
+  this.carpetaSeleccionada = '';
+  this.paginaActual = 0;
+  this.archivos = []; // Limpiamos archivos previos
+  this.carpetas = []; // Limpiamos carpetas previas
+
+  if (this.tipoActual) {
+    this.dataService.listarCarpetas(this.tipoActual).subscribe(res => {
+      // Si el backend devuelve archivos directamente (como en 'upload')
+      if (res.archivos && res.archivos.length > 0 && this.tipoActual === 'upload') {
+        this.archivos = res.archivos;
+        this.carpetaSeleccionada = 'Raíz'; // Marcamos como seleccionada para mostrar la tabla de archivos
+      } else {
+        this.carpetas = res.carpetas;
+      }
+    });
   }
-});
-  }
+}
 
   verCarpeta(nombre: string) {
     this.carpetaSeleccionada = nombre;
     this.paginaActual = 0;
-    this.terminoBusqueda = '';
-
-    this.dataService.listarCarpeta(this.tipoActual, nombre).subscribe({
-      next: (res: any) => {
-        this.archivos = res.archivos || [];
-        this.archivosFiltrados = [...this.archivos];
-        
-        // Si el tamaño de página actual es mayor al total de archivos, 
-        // bajamos a 100 o 10 para que la vista sea cómoda
-        if (this.pageSize > this.archivosFiltrados.length && this.archivosFiltrados.length > 0) {
-            // Si tiene pocos archivos, ajustamos el selector automáticamente
-            this.pageSize = this.archivosFiltrados.length > 10 ? 100 : 10;
-        }
-      }
+    this.dataService.listarArchivos(this.tipoActual, nombre).subscribe(res => {
+      this.archivos = res.archivos;
     });
   }
 
-  filtrar(event: any) {
-    this.terminoBusqueda = event.target.value.toLowerCase();
+  volver() {
+    this.carpetaSeleccionada = '';
+    this.archivos = [];
     this.paginaActual = 0;
-
-    if (!this.carpetaSeleccionada) {
-      this.carpetasFiltradas = this.carpetas.filter(c => 
-        c.toLowerCase().includes(this.terminoBusqueda)
-      );
-    } else {
-      this.archivosFiltrados = this.archivos.filter(a => 
-        a.toLowerCase().includes(this.terminoBusqueda)
-      );
-    }
   }
 
-  // Lógica de Paginación Dinámica
+  descargar(archivo: string) {
+  // Si la carpeta es 'Raíz', significa que el archivo está directo en el tipo (ej: upload/archivo.xlsx)
+  if (this.carpetaSeleccionada === 'Raíz') {
+    this.dataService.descargarArchivoDirecto(this.tipoActual, archivo);
+  } else {
+    this.dataService.descargarArchivo(this.tipoActual, this.carpetaSeleccionada, archivo);
+  }
+}
+
+  // --- LÓGICA DE PAGINACIÓN Y FILTRADO ---
+  get carpetasFiltradas() {
+    return this.carpetas.filter(c => c.toLowerCase().includes(this.filtro.toLowerCase()));
+  }
+
   get carpetasPaginadas() {
     const inicio = this.paginaActual * this.pageSize;
     return this.carpetasFiltradas.slice(inicio, inicio + this.pageSize);
+  }
+
+  get archivosFiltrados() {
+    return this.archivos.filter(a => a.toLowerCase().includes(this.filtro.toLowerCase()));
   }
 
   get archivosPaginados() {
@@ -94,34 +99,21 @@ export class EjecutivoDashboardComponent {
     return this.archivosFiltrados.slice(inicio, inicio + this.pageSize);
   }
 
-  esUltimaPagina(): boolean {
-    const total = this.carpetaSeleccionada ? this.archivosFiltrados.length : this.carpetasFiltradas.length;
-    return (this.paginaActual + 1) * this.pageSize >= total;
+  obtenerTotal() {
+    return this.carpetaSeleccionada ? this.archivosFiltrados.length : this.carpetasFiltradas.length;
+  }
+
+  filtrar(event: any) {
+    this.filtro = event.target.value;
+    this.paginaActual = 0;
   }
 
   cambiarPagina(delta: number) {
     this.paginaActual += delta;
-    window.scrollTo(0, 0); // Vuelve arriba al cambiar página
   }
 
-  volver() {
-    this.carpetaSeleccionada = '';
-    this.archivos = [];
-    this.archivosFiltrados = [];
-    this.paginaActual = 0;
+  esUltimaPagina() {
+    const total = this.obtenerTotal();
+    return (this.paginaActual + 1) * this.pageSize >= total;
   }
-
-  descargar(archivo: string) {
-    this.dataService.descargar(this.tipoActual, this.carpetaSeleccionada, archivo);
-  }
-
-  // Agrega esta función dentro de tu clase EjecutivoDashboardComponent
-  obtenerTotal(): number {
-  // Si estamos dentro de una carpeta, el total es de archivos filtrados
-  if (this.carpetaSeleccionada) {
-    return this.archivosFiltrados.length;
-  }
-  // Si estamos en la raíz del tipo, el total es de carpetas filtradas
-  return this.carpetasFiltradas.length;
-}
 }
