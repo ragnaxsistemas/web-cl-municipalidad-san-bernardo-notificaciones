@@ -20,18 +20,6 @@ export const routes: Routes = [
       { path: '', redirectTo: 'operador', pathMatch: 'full' }
     ]
   },
-  // Rutas protegidas (dentro del panel principal)
-  {
-    path: '',
-    component: MainLayoutComponent,
-    children: [
-      { path: 'operador', component: OperadorUploadComponent },
-      { path: 'operador/exito', component: OperadorExitoComponent },
-      { path: 'ejecutivo', component: EjecutivoDashboardComponent },
-      // Redirección por defecto al entrar
-      { path: '', redirectTo: 'operador', pathMatch: 'full' }
-    ]
-  },
 
   // Atrapa-todo: si la ruta no existe, va al login
   { path: '**', redirectTo: 'login' }

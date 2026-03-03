@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class DataService {
   // Cuando despliegues en AWS, cambia localhost por 3.140.205.250
-  private API_URL = 'http://localhost:3000'; 
+  private API_URL = `${environment.apiUrl}`; 
 
   constructor(private http: HttpClient) {}
 

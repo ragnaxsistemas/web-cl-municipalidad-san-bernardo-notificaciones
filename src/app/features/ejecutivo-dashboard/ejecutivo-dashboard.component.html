@@ -42,7 +42,7 @@
   <div *ngIf="!carpetaSeleccionada && tipoActual">
     <table style="width: 100%; border-collapse: collapse; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
       <thead style="background: #343a40; color: white;">
-        <tr><th style="padding: 12px; text-align: left;">Carpeta</th><th style="width: 120px;">Acción</th></tr>
+        <tr><th style="padding: 12px; text-align: left;">Carpeta {{ tipoActual | uppercase }}</th><th style="width: 120px;">Acción</th></tr>
       </thead>
       <tbody>
         @for (c of carpetasPaginadas; track c) {
