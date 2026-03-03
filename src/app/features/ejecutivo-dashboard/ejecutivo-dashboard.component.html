@@ -1,0 +1,84 @@
+<div style="padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+  <h2 style="color: #004a99; border-bottom: 2px solid #004a99; padding-bottom: 10px;">
+    Panel Municipalidad San Bernardo
+  </h2>
+
+  <div style="margin: 20px 0; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+    <div style="background: #e9ecef; padding: 10px; border-radius: 5px;">
+      <label><b>Proceso: </b></label>
+      <select (change)="onTipoChange($event)" style="padding: 5px; border-radius: 4px;">
+        <option value="">-- Seleccionar --</option>
+        <option value="consolidado">Consolidado</option>
+        <option value="notificaciones">Notificaciones</option>
+        <option value="reporte">Reporte</option>
+        <option value="procesados">Procesados</option>
+      </select>
+    </div>
+
+    <div *ngIf="tipoActual" style="background: #d1ecf1; padding: 10px; border-radius: 5px;">
+  <label><b>Mostrar: </b></label>
+  <select [(ngModel)]="pageSize" (change)="paginaActual = 0" style="padding: 5px; border-radius: 4px;">
+    <option [ngValue]="10">10 registros</option>
+    
+    @if (obtenerTotal() > 10) { <option [ngValue]="100">100 registros</option> }
+    
+    @if (obtenerTotal() > 100) { <option [ngValue]="1000">1.000 registros</option> }
+    
+    @if (obtenerTotal() > 1000) { <option [ngValue]="10000">10.000 registros</option> }
+  </select>
+  
+  <span style="margin-left: 10px; font-size: 0.9em; color: #0c5460;">
+    (Total disponible: {{ obtenerTotal() }})
+  </span>
+</div>
+
+    <div *ngIf="tipoActual" style="flex-grow: 1;">
+      <input type="text" placeholder="🔍 Buscar en tiempo real..." 
+             (input)="filtrar($event)" 
+             style="padding: 10px; width: 100%; border: 2px solid #007bff; border-radius: 20px; outline: none;">
+    </div>
+  </div>
+
+  <div *ngIf="!carpetaSeleccionada && tipoActual">
+    <table style="width: 100%; border-collapse: collapse; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+      <thead style="background: #343a40; color: white;">
+        <tr><th style="padding: 12px; text-align: left;">Carpeta</th><th style="width: 120px;">Acción</th></tr>
+      </thead>
+      <tbody>
+        @for (c of carpetasPaginadas; track c) {
+          <tr style="border-bottom: 1px solid #dee2e6;">
+            <td style="padding: 10px;">📁 {{ c }}</td>
+            <td><button (click)="verCarpeta(c)" style="background: #17a2b8; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">Abrir</button></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="carpetaSeleccionada">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <button (click)="volver()" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">⬅ Volver</button>
+      <span style="font-weight: bold;">Carpeta: {{carpetaSeleccionada}} (Mostrando {{archivosPaginados.length}} de {{archivosFiltrados.length}})</span>
+    </div>
+    
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead style="background: #28a745; color: white;">
+        <tr><th style="padding: 12px; text-align: left;">Archivo PDF / Excel</th><th style="width: 120px;">Acción</th></tr>
+      </thead>
+      <tbody>
+        @for (a of archivosPaginados; track a) {
+          <tr style="border-bottom: 1px solid #dee2e6;">
+            <td style="padding: 8px;">📄 {{ a }}</td>
+            <td><button (click)="descargar(a)" style="background: #ffc107; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">⬇ Descargar</button></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="tipoActual" style="margin-top: 20px; display: flex; justify-content: center; gap: 20px; align-items: center;">
+    <button [disabled]="paginaActual === 0" (click)="cambiarPagina(-1)" style="padding: 10px 20px;">Anterior</button>
+    <span style="font-size: 1.1em;">Página <b>{{paginaActual + 1}}</b></span>
+    <button [disabled]="esUltimaPagina()" (click)="cambiarPagina(1)" style="padding: 10px 20px;">Siguiente</button>
+  </div>
+</div>
