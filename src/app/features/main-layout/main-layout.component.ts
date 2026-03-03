@@ -10,7 +10,7 @@ import { RouterModule, Router } from '@angular/router';
     <div class="main-container">
       <header class="header">
         <div class="header-left">
-          <h1 class="app-title">IMSB - Sistema de Notificaciones</h1>
+          <h1 class="app-title">IMSB - Sistema de Generacion de Cartas - I. Municipalidad de San Bernardo</h1>
           
           <nav class="nav-menu">
             @if (perfilUsuario === 'operador') {

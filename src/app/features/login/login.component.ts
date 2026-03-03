@@ -13,7 +13,7 @@ import { Router } from '@angular/router';
         
         <div class="header-left">
           <h1 class="app-title" style="color: white; margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; font-size: 1.4rem; font-weight: bold;">
-            IMSB - Sistema de Notificaciones
+            Sistema de Generacion de Cartas
           </h1>
         </div>
 
